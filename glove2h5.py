@@ -83,6 +83,14 @@ class GloVe2H5:
         vector_dimensions = len(parts) - 1
         return GloVe2H5(output_file, collection=zipfiles[0])
 
+    def __contains__(entry):
+        vocab = sqlitedict.SqliteDict(str(self.path / 'vocab.sqlite'), autocommit=False, flag='r')
+        entry_ = Path(entry)
+        contains = entry_.name in vocab
+        vocab.close()
+        return contains
+
+
     def __getitem__(self, entry):
         vocab = sqlitedict.SqliteDict(str(self.path / 'vocab.sqlite'), autocommit=False, flag='r')
         entry_ = Path(entry)
