@@ -35,6 +35,6 @@ glove2h5_100d = GloVe2H5.create_from('./GloVe/glove.6B.zip', collections['glove.
 
 # Requirements
 
-- Python 3.6
+- Python 3.4+
 - `h5py`
 - `sqlitedict`
