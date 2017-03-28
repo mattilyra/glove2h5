@@ -83,25 +83,26 @@ class GloVe2H5:
         vector_dimensions = len(parts) - 1
         return GloVe2H5(output_file, collection=zipfiles[0])
 
-    def __contains__(entry):
+    def __contains__(self, entry):
         vocab = sqlitedict.SqliteDict(str(self.path / 'vocab.sqlite'), autocommit=False, flag='r')
         entry_ = Path(entry)
         contains = entry_.name in vocab
         vocab.close()
         return contains
 
-
     def __getitem__(self, entry):
         vocab = sqlitedict.SqliteDict(str(self.path / 'vocab.sqlite'), autocommit=False, flag='r')
         entry_ = Path(entry)
-        with h5py.File(self.path / 'vectors.h5', mode='r') as h5:
-            if entry_.name in vocab:
+        if entry_.name in self:
+            with h5py.File(self.path / 'vectors.h5', mode='r') as h5:
                 token_idx = vocab[entry_.name]
                 parent = self.collection if entry_.parent == Path('.') else entry_.parent
                 if parent == '.':
+                    vocab.close()
                     raise RuntimeError('HDF5 dataset name not defined, either set a default \'collection=\' in constructor or define the access key as \'d[\'collection/entry\']\'')
                 v = h5[parent][token_idx]
-            else:
-                raise KeyError(f'Entry {entry} not found in vocabulary.')
+        else:
+            vocab.close()
+            raise KeyError(f'Entry {entry} not found in vocabulary.')
         vocab.close()
         return v
