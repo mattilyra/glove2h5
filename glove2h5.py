@@ -36,29 +36,49 @@ class GloVe2H5:
                 token = parts[0]
                 vec = np.asarray(parts[1:], dtype=np.float64)
                 h5_dataset[vocab[token]] = vec
-
-    @staticmethod
-    def create_from(datafile, compression='lzf'):
-        """Initialise the H5 container and vocabulary from the original Stanford ZIP files"""
-
+	
+	@staticmethod
+    def create_from(datafile, collections=None, compression='lzf'):
+        """Initialise the HDF5 container and vocabulary from the original Stanford ZIP files.
+        
+        Parameters
+        ----------
+        
+        datafile : str or pathlib.Path
+            The original Stanford GloVe zip file to extract
+        
+        collections : list<str> (optional) default = None
+            Optionally a list of strings defining which collections in the zipfile should
+            be extracted. By default all collections are extracted, this can be slow.
+        
+        compression : str
+            Compression to be used for the HDF5 collections. See the h5py docs for 
+            valid values.
+            
+            http://docs.h5py.org/en/latest/high/dataset.html#lossless-compression-filters
+        """
+        
         output_path = Path(datafile).expanduser().parent
-
+        
         if not output_path.exists():
             output_path.parent.mkdir()
         vector_dimensions = 0
-
+        
         output_file = Path(datafile).with_suffix('.glove2h5')
         try:
             output_file.mkdir()
         except FileExistsError: pass
-
+        
         h5_path = Path(output_file / 'vectors.h5')
         vocab_path = Path(output_file / 'vocab.sqlite')
         vocab_rev_path = Path(output_file / 'vocab_rev.sqlite')
-
+        
         with zipfile.ZipFile(datafile, 'r') as zipfh,\
              h5py.File(h5_path, 'w', ) as h5fh:
             zipfiles = zipfh.filelist
+            zipfiles = zipfiles if collections is None else [zf for zf in zipfiles if zf.filename in collections]
+            if collections and not zipfiles:
+                raise RuntimeError(f'Collections {collections} not found in zipfile {datafile}.')
             for zipinfo in zipfiles[:1]:
                 try:
                     vocab = sqlitedict.SqliteDict(str(vocab_path), autocommit=False, flag='w')
@@ -66,20 +86,20 @@ class GloVe2H5:
                     vocab.commit()
                 finally:
                     vocab.close()
-
+            
             vocab = sqlitedict.SqliteDict(str(vocab_path), autocommit=False, flag='r')
-
+            
             for zipinfo in zipfiles:
                 with zipfh.open(zipinfo) as inputfile:
                     parts = inputfile.readline().decode('utf-8').strip().split()
                     D = len(parts) - 1
-
+                
                 dataset_name = Path(zipinfo.filename).stem
                 h5_dataset = h5fh.create_dataset(dataset_name, (num_entries, D), dtype=np.float64, compression=compression)
                 GloVe2H5._extract_vectors_from_stanford_zip(zipfh, zipinfo, vocab, h5_dataset)
 
         vocab.close()
-
+        
         vector_dimensions = len(parts) - 1
         return GloVe2H5(output_file, collection=zipfiles[0])
 
