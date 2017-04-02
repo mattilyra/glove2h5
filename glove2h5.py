@@ -11,7 +11,6 @@ import sqlitedict
 class GloVe2H5:
     def __init__(self, path, collection=''):
         self.path = Path(path)
-        self.id2token = {}
         self.collection = collection
 
     @staticmethod
