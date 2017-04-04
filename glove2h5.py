@@ -3,6 +3,7 @@ import zipfile
 import tarfile
 import tempfile
 import shutil
+import argparse
 
 import numpy as np
 import h5py
@@ -35,8 +36,8 @@ class GloVe2H5:
                 token = parts[0]
                 vec = np.asarray(parts[1:], dtype=np.float64)
                 h5_dataset[vocab[token]] = vec
-	
-	@staticmethod
+
+    @staticmethod
     def create_from(datafile, collections=None, compression='lzf'):
         """Initialise the HDF5 container and vocabulary from the original Stanford ZIP files.
         
@@ -125,3 +126,17 @@ class GloVe2H5:
             raise KeyError(f'Entry {entry} not found in vocabulary.')
         vocab.close()
         return v
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='GloVe2H5 - convert Stanford GloVe vectors from .zip to HDF5.')
+    parser.add_argument('input_file', type=str, help='Path to source file .zip to convert / extract.')
+    parser.add_argument('--collection', nargs='+', default=None, help='(optional) Extract only specific collections from the .zip file.')
+    parser.add_argument('--compression', type=str, choices=['gzip', 'lzf', 'szip'], default='lzf', help='(optional) Compression to use for HDF5 datasets.')
+    args = parser.parse_args()
+
+    infile = Path(args.input_file)
+    if infile.exists() and infile.isfile():
+        GloVe2H5.create_from(infile, args.collections, args.compression)
+    else:
+        raise RuntimeError(f'Source file {args.input_file} not found.')
+

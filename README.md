@@ -11,10 +11,22 @@ can download the pretrained Stanford GloVe vectors from https://nlp.stanford.edu
 Jeffrey Pennington, Richard Socher, and Christopher D. Manning. 2014. GloVe: Global Vectors for Word Representation.
 https://nlp.stanford.edu/pubs/glove.pdf
 
-# Usage
+# Install & Usage
 
 Assuming you've downloaded the GloVe vectors from https://nlp.stanford.edu/projects/glove/
 into `./GloVe`
+
+### cli
+
+Extract the 50-dimensional word vectors using LZF compression for HDF5
+
+```
+$ git clone https://github.com/mattilyra/glove2h5.git
+$ cd glove2h5
+$ python -m glove2h5 ~/Downloads/glove.6B.txt.zip --collection glove.6B.50d.txt --compression lzf
+```
+
+---
 
 Convert all GloVe vectors in `glove.6B.zip` to NumPy and store in an HDF5 file.
 The call below creates a vocabulary stored in a `sqlitedict.SqliteDict` and
