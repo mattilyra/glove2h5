@@ -13,10 +13,7 @@ https://nlp.stanford.edu/pubs/glove.pdf
 
 # Install & Usage
 
-Assuming you've downloaded the GloVe vectors from https://nlp.stanford.edu/projects/glove/
-into `./GloVe`
-
-### cli
+### CLI
 
 Extract the 50-dimensional word vectors using LZF compression for HDF5
 
@@ -27,6 +24,9 @@ $ python -m glove2h5 ~/Downloads/glove.6B.txt.zip --collection glove.6B.50d.txt 
 ```
 
 ---
+
+Assuming you've downloaded the GloVe vectors from https://nlp.stanford.edu/projects/glove/
+into `./GloVe`
 
 Convert all GloVe vectors in `glove.6B.zip` to NumPy and store in an HDF5 file.
 The call below creates a vocabulary stored in a `sqlitedict.SqliteDict` and
